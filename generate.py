@@ -28,6 +28,7 @@ parser.add_argument('--skip-unzip', action='store_true')
 args = parser.parse_args()
 
 icons_to_tags = {}
+tag_to_icons = {}
 
 if not args.skip_tags:
     r = requests.get('https://game-icons.net/tags.html')
@@ -60,6 +61,11 @@ if not args.skip_tags:
                 icons_to_tags[name].append(tag_label)
             else:
                 icons_to_tags[name] = [tag_label]
+
+            if tag_label not in tag_to_icons:
+                tag_to_icons[tag_label] = [name]
+            else:
+                tag_to_icons[tag_label].append(name)
         time.sleep(0.1)
         index += 1
 else:
@@ -104,7 +110,11 @@ with open(template_path, 'r') as template:
 
     building_index = []
     building_index_dts = [
-        f"export type {{ IconProps }} from './IconProps';"
+        "import * as React from 'react';",
+        f"export type {{ IconProps }} from './IconProps';",
+        f"export const IconNameToTags: {{ [key: string]: string[] }};",
+        f"export const IconNameToReactNode: {{ [key: string]: React.ReactNode }};",
+        f"export const TagToIconNames: {{ [key: string]: string[] }};",
     ]
 
     # Walk once to make sure we have no duplicate names
@@ -122,6 +132,10 @@ with open(template_path, 'r') as template:
                     duplicate_icon_names.append(icon_name)
             else:
                 unique_icon_names.append(icon_name)
+
+    all_icons_names = []
+    new_icon_name_to_file = {}
+    file_to_new_icon_name = {}
 
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -175,8 +189,43 @@ with open(template_path, 'r') as template:
                     ]
                     fd.writelines(x + '\n' for x in type_lines)
 
-                building_index.append(f"export {{ default as {icon_name} }} from './icons/{creator}/{icon_name}'")
+                building_index.append(f"import {{ default as {icon_name} }} from './icons/{creator}/{icon_name}'")
                 building_index_dts.append(f"export {{ default as {icon_name} }} from './icons/{creator}/{icon_name}'")
+
+                all_icons_names.append(icon_name)
+                new_icon_name_to_file[icon_name] = file
+                file_to_new_icon_name[file] = icon_name
+
+    building_index.append('export {')
+    for name in all_icons_names:
+        building_index.append(f"    {name},")
+    building_index.append('};')
+
+    building_index.append('export const IconNameToReactNode = {')
+    for name in all_icons_names:
+        building_index.append(f"    {name}: {name},")
+    building_index.append('};')
+
+    building_index.append('export const TagToIconNames = {')
+    for key in tag_to_icons:
+        building_index.append(f"    '{key}': [")
+        for icon_file in tag_to_icons[key]:
+            if icon_file in file_to_new_icon_name:
+                new_icon_name = file_to_new_icon_name[icon_file]
+                building_index.append(f"        '{new_icon_name}',")
+        building_index.append('    ],')
+    building_index.append('};')
+
+    building_index.append('export const IconNameToTags = {')
+    for name in all_icons_names:
+        if name in new_icon_name_to_file:
+            icon_file = new_icon_name_to_file[name]
+            if icon_file in icons_to_tags:
+                building_index.append(f"    {name}: [")
+                for tag in icons_to_tags[icon_file]:
+                    building_index.append(f"        '{tag}',")
+                building_index.append('    ],')
+    building_index.append('};')
 
     with open(os.path.join('npm', 'index.js'), 'w+') as f:
         f.writelines(x + '\n' for x in building_index)
