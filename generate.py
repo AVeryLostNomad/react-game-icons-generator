@@ -16,6 +16,7 @@ import requests
 import re
 import time
 import zipfile
+import shutil
 from lxml import html, etree
 import urllib.request
 import os.path
@@ -89,8 +90,38 @@ template_path = os.path.join('npm', 'Template.js')
 if not os.path.isfile(template_path):
     raise Exception('Template file not found?')
 
+# Delete any existing icons, we fully regenerate each time.
+icons_folder = os.path.join('npm', 'icons')
+shutil.rmtree(icons_folder)
+if os.path.isdir(icons_folder):
+    raise Exception('Could not delete existing icons')
+
+os.mkdir(icons_folder)
+
+
 with open(template_path, 'r') as template:
     template = template.read()
+
+    building_index = []
+    building_index_dts = [
+        f"export type {{ IconProps }} from './IconProps';"
+    ]
+
+    # Walk once to make sure we have no duplicate names
+    unique_icon_names = []
+    duplicate_icon_names = []
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            icon_name = file
+            if icon_name.endswith('.svg'):
+                icon_name = icon_name[:-4]
+            icon_name = icon_name.title()
+            icon_name = re.sub('[^a-zA-Z0-9]', '', icon_name)
+            if icon_name in unique_icon_names:
+                if icon_name not in duplicate_icon_names:
+                    duplicate_icon_names.append(icon_name)
+            else:
+                unique_icon_names.append(icon_name)
 
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -100,7 +131,18 @@ with open(template_path, 'r') as template:
                 if icon_name.endswith('.svg'):
                     icon_name = icon_name[:-4]
                 icon_name = icon_name.title()
-                icon_name = re.sub('[^a-zA-Z]', '', icon_name)
+                icon_name = re.sub('[^a-zA-Z0-9]', '', icon_name)
+
+                if icon_name in duplicate_icon_names:
+                    creator_title = creator.title()
+                    creator_title = re.sub('[^a-zA-Z0-9]', '', creator_title)
+                    icon_name = creator_title + icon_name
+
+                if icon_name[0].isdigit():
+                    if icon_name[0] == '3':
+                        icon_name = 'Three' + icon_name[1:]
+                    else:
+                        icon_name = 'A' + icon_name
 
                 data = fd.read()
                 icon_parsed = html.fromstring(data)
@@ -112,12 +154,31 @@ with open(template_path, 'r') as template:
                 my_data = my_data.replace('PATH', building_paths)
                 my_data = my_data.replace('fill="#fff"', 'fill={color}')
 
-
                 dir_path = os.path.join('npm', 'icons', creator)
                 if not os.path.isdir(dir_path):
                     os.mkdir(dir_path)
 
-                with open(os.path.join(dir_path, f'{icon_name}.js'), 'w+') as fd:
+                item_path = os.path.join(dir_path, icon_name)
+                if not os.path.isdir(item_path):
+                    os.mkdir(item_path)
+
+                with open(os.path.join(item_path, f'index.js'), 'w+') as fd:
                     fd.write(my_data)
 
-                exit(0)
+                # Write the type file
+                with open(os.path.join(item_path, f'index.d.ts'), 'w+') as fd:
+                    type_lines = [
+                        "import * as React from 'react';",
+                        f'import {{ IconProps }} from "../../../IconProps";',
+                        f'declare const {icon_name}: React.FC<IconProps>;',
+                        f'export default {icon_name};'
+                    ]
+                    fd.writelines(x + '\n' for x in type_lines)
+
+                building_index.append(f"export {{ default as {icon_name} }} from './icons/{creator}/{icon_name}'")
+                building_index_dts.append(f"export {{ default as {icon_name} }} from './icons/{creator}/{icon_name}'")
+
+    with open(os.path.join('npm', 'index.js'), 'w+') as f:
+        f.writelines(x + '\n' for x in building_index)
+    with open(os.path.join('npm', 'index.d.ts'), 'w+') as f:
+        f.writelines(x + '\n' for x in building_index_dts)
