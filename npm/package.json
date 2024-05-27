@@ -1,6 +1,6 @@
 {
   "name": "react-game-icons-auto",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Automatic transpilation of the game-icons.net collection into an always up to date series of typescript components. Includes useful utility features like tags and lists of grouped icons.",
   "scripts": {
     "rollup": "rollup -c --bundleConfigAsCjs"
