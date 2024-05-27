@@ -37,20 +37,4 @@ export default [
     output: [{ file: "dist/types.d.ts", format: "es" }],
     plugins: [dts.default()],
   },
-  {
-    input: 'nametonode.ts',
-    output: [{
-      file: 'dist/nametonode/index.js',
-      format: 'esm',
-      sourcemap: true,
-    }]
-  },
-  {
-    input: 'nametonode.ts',
-    output: [{
-      file: 'dist/nametonode/index.d.ts',
-      format: 'es'
-    }],
-    plugins: [dts.default()],
-  }
 ];

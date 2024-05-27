@@ -181,18 +181,6 @@ with open(template_path, 'r') as template:
                 new_icon_name_to_file[icon_name] = file
                 file_to_new_icon_name[file] = icon_name
 
-    # Write nametonode file
-    building_nametonode = [
-        "import * as Icons from './index';",
-        'export default {'
-    ]
-    for name in all_icons_names:
-        building_nametonode.append(f"    '{name}': Icons.{name},")
-    building_nametonode.append('};')
-    with open(os.path.join('npm', 'nametonode.ts'), 'w+') as f:
-        f.writelines(x + '\n' for x in building_nametonode)
-    #end write nametonode file
-
     building_index.append('export const TagToIconNames = {')
     for key in tag_to_icons:
         building_index.append(f"    '{key}': [")

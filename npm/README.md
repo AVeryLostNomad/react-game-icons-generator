@@ -42,6 +42,8 @@ import {PoliceBadge} from "react-game-icons-auto";
 ```
 This should be completely fine. Webpack (or whatever other bundler) will detect you just want a single icon and add only that.
 
+NOTE: Some bundlers appear to not do tree shaking in "dev" mode and save it for production. This means that you could see increased compilation times while it sorts out having all of these four thousand icons in source. 
+
 React-game-icons-auto DOES also export some utility collections which may also be useful to you.
 Two are included directly in the base index.ts and can be imported like this
 ```typescript
@@ -51,14 +53,7 @@ TagToIconNames is a mapping of the various tags on game-icons.net and which icon
 
 IconNameToTags is a mapping of an icon to which tags it has on the site.
 
-The third exported dictionary should be used with caution.
-```typescript
-import {default as IconNameToReactNode} from 'react-game-icons-auto/nametonode'
-```
-This dictionary is a mapping of string icon name to its react node representation. It will make any bundler load the entire set of icons into memory, which adds approximately 10-20 MB to your load. 
-
-This is provided because some users may with to design a search functionality that provides ALL the icons as options (my use case) where the initial extra load time is negligible.
-
+Both dictionaries use the string name of the icon as the key.
 ## Contributing
 
 If there are changes that could make the generated package more support your workflow, feel free to make a PR. 
