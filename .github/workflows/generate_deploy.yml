@@ -39,7 +39,7 @@ jobs:
     - name: Bump Version
       run: |
         cd npm
-        npm version
+        npm version patch
     - name: Upload to npm
       run: |
         cd npm
