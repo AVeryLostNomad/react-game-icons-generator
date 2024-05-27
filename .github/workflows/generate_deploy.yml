@@ -29,7 +29,7 @@ jobs:
       with:
         node-version: '18.x'
         cache: 'npm'
-        cache-dependency-path: ./npm/package-lock.json
+        cache-dependency-path: npm/package-lock.json
     - name: Run Generate
       run: python generate.py
     - name: Bump Version
