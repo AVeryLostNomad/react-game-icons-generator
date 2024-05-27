@@ -1,5 +1,10 @@
 import React from 'react';
-import {IconProps} from "../../../IconProps";
+
+export interface IconProps {
+    width?: number;
+    height?: number;
+    color?: string;
+}
 
 const TEMPLATE = (props: IconProps) => {
     

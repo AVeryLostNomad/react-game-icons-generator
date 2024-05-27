@@ -91,7 +91,7 @@ path = os.path.join('raw', 'icons', 'ffffff', 'transparent', '1x1')
 if not os.path.isdir(path):
     raise Exception('Game-icons.net file structure has changed')
 
-template_path = os.path.join('npm', 'Template.tsx')
+template_path = 'Template.tsx'
 
 if not os.path.isfile(template_path):
     raise Exception('Template file not found?')
