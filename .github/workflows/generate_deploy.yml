@@ -40,12 +40,15 @@ jobs:
       run: |
         cd npm
         npm version patch
-    - name: Upload to npm
+    - name: Build the NPM Package
       run: |
         cd npm
-        npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        npm run rollup
+    - uses: JS-DevTools/npm-publish@v3
+      with:
+        token: ${{ secrets.NPM_TOKEN }}
+        package: 'npm/package.json'
+        provenance: true
     - name: Commit new version back to github
       uses: EndBug/add-and-commit@v9
       with:
