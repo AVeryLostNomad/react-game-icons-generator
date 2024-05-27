@@ -98,7 +98,10 @@ if not os.path.isfile(template_path):
 
 # Delete any existing icons, we fully regenerate each time.
 icons_folder = os.path.join('npm', 'icons')
-shutil.rmtree(icons_folder)
+
+if os.path.isdir(icons_folder):
+    shutil.rmtree(icons_folder)
+
 if os.path.isdir(icons_folder):
     raise Exception('Could not delete existing icons')
 
