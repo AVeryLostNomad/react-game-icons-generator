@@ -1,6 +1,7 @@
 import React from 'react';
+import {IconProps} from "../../../IconProps";
 
-const TEMPLATE = props => {
+const TEMPLATE = (props: IconProps) => {
     
     let color = '#fff';
     if (props.color)

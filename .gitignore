@@ -5,4 +5,6 @@
 .idea
 .idea/*
 /npm/index.d.ts
-/npm/index.js
+/npm/index.ts
+/npm/dist
+/npm/nametonode.ts

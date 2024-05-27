@@ -91,7 +91,7 @@ path = os.path.join('raw', 'icons', 'ffffff', 'transparent', '1x1')
 if not os.path.isdir(path):
     raise Exception('Game-icons.net file structure has changed')
 
-template_path = os.path.join('npm', 'Template.js')
+template_path = os.path.join('npm', 'Template.tsx')
 
 if not os.path.isfile(template_path):
     raise Exception('Template file not found?')
@@ -109,13 +109,6 @@ with open(template_path, 'r') as template:
     template = template.read()
 
     building_index = []
-    building_index_dts = [
-        "import * as React from 'react';",
-        f"export type {{ IconProps }} from './IconProps';",
-        f"export const IconNameToTags: {{ [key: string]: string[] }};",
-        f"export const IconNameToReactNode: {{ [key: string]: React.ReactNode }};",
-        f"export const TagToIconNames: {{ [key: string]: string[] }};",
-    ]
 
     # Walk once to make sure we have no duplicate names
     unique_icon_names = []
@@ -176,35 +169,26 @@ with open(template_path, 'r') as template:
                 if not os.path.isdir(item_path):
                     os.mkdir(item_path)
 
-                with open(os.path.join(item_path, f'index.js'), 'w+') as fd:
+                with open(os.path.join(item_path, f'index.tsx'), 'w+') as fd:
                     fd.write(my_data)
 
-                # Write the type file
-                with open(os.path.join(item_path, f'index.d.ts'), 'w+') as fd:
-                    type_lines = [
-                        "import * as React from 'react';",
-                        f'import {{ IconProps }} from "../../../IconProps";',
-                        f'declare const {icon_name}: React.FC<IconProps>;',
-                        f'export default {icon_name};'
-                    ]
-                    fd.writelines(x + '\n' for x in type_lines)
-
-                building_index.append(f"import {{ default as {icon_name} }} from './icons/{creator}/{icon_name}'")
-                building_index_dts.append(f"export {{ default as {icon_name} }} from './icons/{creator}/{icon_name}'")
+                building_index.append(f"export {{ default as {icon_name} }} from './icons/{creator}/{icon_name}'")
 
                 all_icons_names.append(icon_name)
                 new_icon_name_to_file[icon_name] = file
                 file_to_new_icon_name[file] = icon_name
 
-    building_index.append('export {')
+    # Write nametonode file
+    building_nametonode = [
+        "import * as Icons from './index';",
+        'export default {'
+    ]
     for name in all_icons_names:
-        building_index.append(f"    {name},")
-    building_index.append('};')
-
-    building_index.append('export const IconNameToReactNode = {')
-    for name in all_icons_names:
-        building_index.append(f"    {name}: {name},")
-    building_index.append('};')
+        building_nametonode.append(f"    '{name}': Icons.{name},")
+    building_nametonode.append('};')
+    with open(os.path.join('npm', 'nametonode.ts'), 'w+') as f:
+        f.writelines(x + '\n' for x in building_nametonode)
+    #end write nametonode file
 
     building_index.append('export const TagToIconNames = {')
     for key in tag_to_icons:
@@ -221,13 +205,11 @@ with open(template_path, 'r') as template:
         if name in new_icon_name_to_file:
             icon_file = new_icon_name_to_file[name]
             if icon_file in icons_to_tags:
-                building_index.append(f"    {name}: [")
+                building_index.append(f"    '{name}': [")
                 for tag in icons_to_tags[icon_file]:
                     building_index.append(f"        '{tag}',")
                 building_index.append('    ],')
     building_index.append('};')
 
-    with open(os.path.join('npm', 'index.js'), 'w+') as f:
+    with open(os.path.join('npm', 'index.ts'), 'w+') as f:
         f.writelines(x + '\n' for x in building_index)
-    with open(os.path.join('npm', 'index.d.ts'), 'w+') as f:
-        f.writelines(x + '\n' for x in building_index_dts)

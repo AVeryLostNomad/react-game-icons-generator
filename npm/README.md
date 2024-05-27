@@ -2,9 +2,11 @@
 <br/>
 <div align="center">
 
-<h3 align="center">React Game Icons - Generator</h3>
+<h3 align="center">THIS IS AUTO GENERATED - SEE REPO FOR MORE</h3>
+<h3 align="center">React Game Icons - Auto</h3>
 <p align="center">
-Generate react-game-icons-auto npm package automatically from a github action with all of the latest icons from game-icons.net
+Automatic transpilation of game-icons.net icons into react components with typescript support.
+
 
   
 
@@ -30,7 +32,6 @@ This package aims to be the conclusive, be all end all for solving these problem
   - String icon name to icon ReactNode
   - String tag name to list of string icon names
   - String icon name to list of tags
-
 
 ## Usage / But what about tree shaking?
 
